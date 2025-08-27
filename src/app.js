@@ -1,29 +1,28 @@
 const express = require("express")
-
 const app  = express();
-// app.use("/test",(req,res)=>{
-//          res.send("test h tera bro")
-// });
+const {adminAuth,userAuth} = require("./middlewares/auth")
+app.use("/admin",adminAuth);
+app.use("/user/login",(req,res)=>{
+   res.send("user login h ye to")
+});
+app.use("/user/userInfo",userAuth,(req,res)=>{
+   res.send("user h ye to")
+})
 
+app.use("/admin/getUserInfo",(req,res,next)=>{
+   res.send("amdin info")
+           ("user Data")
+           next()
+             
+}),
 
-app.get("/user",(req,res)=>{
-         res.send("it is get Api")
-})
-app.post("/user",(req,res)=>{
-         res.send("data post ho gya")
-})
-app.put("/user",(req,res)=>{
-         res.send("data put kr to diya")
-})
-app.patch("/user",(req,res)=>{
-         res.send("patch kiya okay")
-})
-app.delete("/user",(req,res)=>{
-         res.send("tera naam delete h n")
+app.use("/admin/imInfo",(req,res)=>{
+   // console.log("ye to admin Info h")
+   res.send("admin info h")
 })
 
 
 
 app.listen(4000,()=>{
-         console.log("server is sucssfully listening on port 3000")
+         console.log("server is sucssfully listening on port 4000")
 })
