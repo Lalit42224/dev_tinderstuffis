@@ -1,28 +1,34 @@
 const express = require("express")
 const app  = express();
-const {adminAuth,userAuth} = require("./middlewares/auth")
-app.use("/admin",adminAuth);
-app.use("/user/login",(req,res)=>{
-   res.send("user login h ye to")
-});
-app.use("/user/userInfo",userAuth,(req,res)=>{
-   res.send("user h ye to")
+const {connectDb}=require("./config/database");
+const User = require("./models/user")
+app.post("/signup",async (req,res)=>{
+   // Creating a new instance of User model
+   const user = new User({
+      firstName:"Aditya",
+      lastName:"sharma",
+      emailsId:"adityasharma8171@gmail.com",
+      password:"adityasharma",
+      service:"police man",
+   })
+
+   try{
+      await user.save();
+   res.send("User Added sucessfully")
+
+   } catch(err){
+      res.status(400).send("Error saving the user:" + err.message);
+
+   }
+   
 })
 
-app.use("/admin/getUserInfo",(req,res,next)=>{
-   res.send("amdin info")
-           ("user Data")
-           next()
-             
-}),
-
-app.use("/admin/imInfo",(req,res)=>{
-   // console.log("ye to admin Info h")
-   res.send("admin info h")
-})
-
-
-
-app.listen(4000,()=>{
+connectDb().then(()=>{
+         console.log("Database connection establised...");
+         app.listen(4000,()=> {
          console.log("server is sucssfully listening on port 4000")
+})
+})
+.catch((err)=>{
+         console.log("Database cannot be connected!!")
 })
