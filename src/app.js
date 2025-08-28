@@ -7,14 +7,6 @@ app.post("/signup",async (req,res)=>{
    // Creating a new instance of User model
     const user = new User(req.body)
      console.log(user)
-      // {
-   //    firstName:"sumit",
-   //    lastName:"sharma",
-   //    emailsId:"sumitsharma8171@gmail.com",
-   //    password:"sumitasharma",
-     
-   // }
-
    try{
       await user.save();
    res.send("User Added sucessfully")
@@ -25,6 +17,37 @@ app.post("/signup",async (req,res)=>{
    }
    
 })
+// findone API
+app.get("/user",async(req,res)=>{
+   const userEmail = req.body.emailsId;
+   try{
+      const user = await User.findOne({emailsId:userEmail})
+      // console.log(user)
+      if(!user){
+         res.status(404).send("user not find")
+      }
+      else{
+         res.send(user)
+      }
+   } catch(err){
+      res.status(401).send("Something went wrong");
+   }
+})
+/// to find the data of all user GET/feed API
+
+
+app.get("/feed",async(req,res)=>{
+   try{
+   const users = await User.find({})
+   res.send(users) 
+   }catch(err){
+      res.status(401).send("something wents wrong")
+
+   }
+})
+
+
+
 
 connectDb().then(()=>{
          console.log("Database connection establised...");
