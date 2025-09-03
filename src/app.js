@@ -3,25 +3,69 @@ const app  = express();
 const {connectDb}=require("./config/database");
 const User = require("./models/user")
 app.use(express.json());
+const validator = require("validator")
+const {validateSignupData} = require("./utiles/validators")
+const bycript = require("bcrypt")
+
 app.post("/signup",async (req,res)=>{
+try{
+
+// validator
+      validateSignupData(req);
+   
+   // Encrypt the password
+   const {firstName,lastName,emailId,password}=req.body;
+ const passwordHash = await bycript.hash(password,10);
+
+    
+
    // Creating a new instance of User model
-    const user = new User(req.body)
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password:passwordHash
+    })
    //   console.log(user)
-   try{
+   
       await user.save();
    res.send("User Added sucessfully")
 
    } catch(err){
-      res.status(400).send("Error saving the user:" + err.message);
+      res.status(400).send("ERROR :" + err.message);
 
    }
    
 })
+// login API //
+app.post("/login", async (req,res)=>{
+   try{
+   const {password,emailId}= req.body;
+   if(!validator.isEmail(emailId)){
+      throw new Error("please Enter valid Email ID")
+   }
+   const user = await User.findOne({emailId:emailId})
+   if(!user){
+          throw new Error("User is not in db")
+   }
+   const isPasswordValid = await bycript.compare(password,user.password);
+      if(isPasswordValid) {
+         res.send("User login Sucessfully!!")
+       
+      }
+      else{
+         throw new Error("Password is not match")
+      }
+   }
+   catch(err){
+      res.status(400).send("ERROR:" +err.message)
+   }
+})
 // findone API
 app.get("/user",async(req,res)=>{
-   const userEmail = req.body.emailsId;
+   const userEmail = req.body.emailId;
    try{
-      const user = await User.findOne({emailsId:userEmail})
+      const user = await User.findOne({emailId:userEmail})
       // console.log(user)
       if(!user){
          res.status(404).send("user not find")
