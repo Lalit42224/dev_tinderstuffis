@@ -5,7 +5,11 @@ const User = require("./models/user")
 app.use(express.json());
 const validator = require("validator")
 const {validateSignupData} = require("./utiles/validators")
-const bycript = require("bcrypt")
+const bcrypt = require("bcrypt")
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+const jwt = require("jsonwebtoken");
+
 
 app.post("/signup",async (req,res)=>{
 try{
@@ -15,7 +19,7 @@ try{
    
    // Encrypt the password
    const {firstName,lastName,emailId,password}=req.body;
- const passwordHash = await bycript.hash(password,10);
+ const passwordHash = await bcrypt.hash(password,10);
 
     
 
@@ -48,8 +52,15 @@ app.post("/login", async (req,res)=>{
    if(!user){
           throw new Error("User is not in db")
    }
-   const isPasswordValid = await bycript.compare(password,user.password);
+   const isPasswordValid = await bcrypt.compare(password,user.password);
       if(isPasswordValid) {
+
+         // Create a JWT token and send it to the user
+            const token = jwt.sign({_id:user._id},"devtinder",{expiresIn:"30d"})
+
+         // Add the tokens to cookies and send the response back to the user 
+          res.cookie("token",token)
+
          res.send("User login Sucessfully!!")
        
       }
@@ -61,6 +72,27 @@ app.post("/login", async (req,res)=>{
       res.status(400).send("ERROR:" +err.message)
    }
 })
+///////// get profile API////
+app.get("/profile",async (req,res)=>{
+   try {
+   const cookies = req.cookies;
+   const {token} = cookies;
+   if(!token){
+      throw new Error("Token is not present");
+   }
+   const decodedMesaagae =  jwt.verify(token,"devtinder");
+   const {_id} = decodedMesaagae; 
+   const user = await User.findById(_id);
+   if(!user){
+      throw new Error("user not found")
+   }
+   res.send(user)
+   } catch(err){
+      res.status(401).send("ERROR:" + err.message  ) ; 
+   }
+})
+
+
 // findone API
 app.get("/user",async(req,res)=>{
    const userEmail = req.body.emailId;
